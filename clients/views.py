@@ -93,4 +93,4 @@ class ClientBillsDownloadView(APIView):
             
             writer.writerow(row)
 
-        return response#Response({"message": "Download success"}, status=status.HTTP_200_OK)
+        return response
