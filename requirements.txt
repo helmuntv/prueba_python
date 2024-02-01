@@ -8,7 +8,7 @@ Django==4.0.1
 django-rest-swagger==2.2.0
 djangorestframework==3.13.1
 djangorestframework-simplejwt==5.0.0
-drf-yasg==1.20.0
+drf-yasg==1.21.7
 environ==1.0
 idna==3.3
 inflection==0.5.1
@@ -25,6 +25,7 @@ pyparsing==3.0.7
 python-dateutil==2.8.2
 python-decouple==3.6
 pytz==2021.3
+PyYAML==6.0.1
 requests==2.27.1
 ruamel.yaml==0.17.20
 ruamel.yaml.clib==0.2.6

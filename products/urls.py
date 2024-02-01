@@ -3,9 +3,9 @@ from .views import ShowProductView, ProductRegisterView, ShowOneProductView, Upd
 
 
 urlpatterns = [
-    path('products', ShowProductView.as_view()),
-    path('products/register', ProductRegisterView.as_view()),
-    path('products/<int:product_id>', ShowOneProductView.as_view()),
-    path('products/<int:product_id>/update', UpdateProductView.as_view()),
-    path('products/<int:product_id>/delete', DeleteProductView.as_view()),
+    path('products', ShowProductView.as_view(), name="show_products"),
+    path('products/register', ProductRegisterView.as_view(), name="register_product"),
+    path('products/<int:product_id>', ShowOneProductView.as_view(), name="show_one_product"),
+    path('products/<int:product_id>/update', UpdateProductView.as_view(), name="update_product"),
+    path('products/<int:product_id>/delete', DeleteProductView.as_view(), name="delete_product"),
 ]

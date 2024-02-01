@@ -1,16 +1,17 @@
-from rest_framework import status
+from rest_framework import views, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import generics
 from products.models import Product
 from clients.models import Client
 from .serializers import BillSerializer
 from .models import Bill
 from rest_framework.permissions import IsAuthenticated
+from drf_yasg.utils import swagger_auto_schema
 
 
-class ShowBillView(APIView):
+class ShowBillView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(responses={200: BillSerializer(many=True)})
     def get(self, request):
         bills = Bill.objects.filter(is_active=True)
         serializer = BillSerializer(bills, many=True)
@@ -18,8 +19,10 @@ class ShowBillView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class BillRegisterView(APIView):
-    permission_classes = [IsAuthenticated]    
+class BillRegisterView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=BillSerializer, responses={201: BillSerializer()})
     def post(self, request):
         data = request.data
         
@@ -52,8 +55,10 @@ class BillRegisterView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ShowOneBillView(APIView):
+class ShowOneBillView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(responses={200: BillSerializer()})
     def get(self, request, bill_id):
         bill = Bill.objects.filter(pk=bill_id).first()
         serializer = BillSerializer(bill)
@@ -61,8 +66,10 @@ class ShowOneBillView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UpdateBillView(generics.UpdateAPIView):
+class UpdateBillView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=BillSerializer, responses={200: BillSerializer()})
     def patch(self, request, bill_id):
         bill = Bill.objects.get(pk=bill_id)
         if not bill:
@@ -98,8 +105,10 @@ class UpdateBillView(generics.UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class DeleteBillView(generics.DestroyAPIView):
+class DeleteBillView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema()
     def delete(self, request, bill_id):
         bill = Bill.objects.filter(pk=bill_id).first()
         if not bill:
