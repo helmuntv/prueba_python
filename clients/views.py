@@ -1,19 +1,18 @@
-from http import client
-from urllib import response
-from rest_framework import status
+from rest_framework import views, status
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework import generics
 from .serializers import ClientSerializer, ClientMassiveUploadSerializer
 from .models import Client
 from bills.models import Bill
 from rest_framework.permissions import IsAuthenticated
 import csv, pandas as pd
 from django.http import HttpResponse
+from drf_yasg.utils import swagger_auto_schema
 
 
-class ShowClientView(APIView):
+class ShowClientView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(responses={200: ClientSerializer(many=True)})
     def get(self, request):
         clients = Client.objects.filter(is_active=True)
         serializer = ClientSerializer(clients, many=True)
@@ -21,7 +20,9 @@ class ShowClientView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ClientRegisterView(APIView):    
+class ClientRegisterView(views.APIView):
+
+    @swagger_auto_schema(request_body=ClientSerializer, responses={201: ClientSerializer()})
     def post(self, request):
         serializer = ClientSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -30,8 +31,10 @@ class ClientRegisterView(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class ShowOneClientView(APIView):
+class ShowOneClientView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(responses={200: ClientSerializer(many=True)})
     def get(self, request, client_id):
         client = Client.objects.filter(pk=client_id).first()
         serializer = ClientSerializer(client)
@@ -39,8 +42,10 @@ class ShowOneClientView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class UpdateClientView(generics.UpdateAPIView):
+class UpdateClientView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=ClientSerializer, responses={200: ClientSerializer()})
     def patch(self, request, client_id):
         client = Client.objects.filter(pk=client_id).first()
         serializer = ClientSerializer(client, data=request.data, partial=True)
@@ -50,8 +55,10 @@ class UpdateClientView(generics.UpdateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class DeleteClientView(generics.DestroyAPIView):
+class DeleteClientView(views.APIView):
     permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(request_body=ClientSerializer, responses={200: ClientSerializer()})
     def delete(self, request, client_id):
         client = Client.objects.filter(pk=client_id).first()
         client.is_active = False
@@ -60,11 +67,12 @@ class DeleteClientView(generics.DestroyAPIView):
         return Response({"message": "Client removed successfully"}, status=status.HTTP_200_OK)
 
 
-class ClientMassiveUploadView(generics.CreateAPIView):
+class ClientMassiveUploadView(views.APIView):
     serializer_class = ClientMassiveUploadSerializer
 
+    @swagger_auto_schema()
     def post(self, request, *args, **kwarg):
-        serializer = self.get_serializer(data=request.data)
+        serializer = ClientMassiveUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         file = serializer.validated_data['file']
         reader = pd.read_csv(file)
@@ -76,7 +84,10 @@ class ClientMassiveUploadView(generics.CreateAPIView):
         return Response({"message": "Success"}, status=status.HTTP_201_CREATED)
 
 
-class ClientBillsDownloadView(APIView):
+class ClientBillsDownloadView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema()
     def get(self, request, *args, **kwargs):
         response = HttpResponse("Download success", content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="client_bills.csv"'
@@ -86,7 +97,7 @@ class ClientBillsDownloadView(APIView):
         writer.writerow(['full_name', 'document', 'bill_quantity'])
 
         for client in Client.objects.all():
-            bills = Bill.objects.filter(client_id=client)
+            bills = Bill.objects.filter(client_id=client, is_active=True)
             bills_count = bills.count()
             
             row = [client.full_name, client.document, bills_count]
